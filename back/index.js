@@ -35,22 +35,25 @@ app.post('/api/todo', (request, response) => {
 
   const newTodo = { id, todo, done }
   todos = [...todos, newTodo]
-  response.json({ newTodo })
+  response.json(newTodo)
 })
 
 app.delete('/api/todo/:id', (request, response) => {
   const id = Number(request.params.id)
   todos = todos.filter((todo) => todo.id !== id)
-  response.status(204).end()
+  // response.status(204).end()
+  response.status(200).json({id})
+
 })
 
 app.put('/api/todo/:id', (request, response) => {
   const id = Number(request.params.id)
   const todo = todos.find((td) => td.id === id)
-  console.log(request.body)
+  // console.log(request.body)
   if (todo) {
     todos = todos.map((todo) => (todo.id === id ? request.body : todo))
-    response.json(todo)
+    console.log(todo)
+    response.json(todos.find((td) => td.id === id))
   } else {
     response.status(400).json({ error: 'Error todo not found' })
   }
