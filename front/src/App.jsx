@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import getTodos from '../helpers/getTodos'
-import { update } from '../helpers/crud'
+// import getTodos from '../helpers/getTodos'
+import { create, del, getTodos, update } from '../helpers/crud'
+import Todos from './components/Todos'
+import Form from './components/Form'
 
 function App () {
   const [todos, setTodos] = useState([])
@@ -14,51 +16,46 @@ function App () {
     setInput(e.target.value)
   }
 
-  const handleChangeState = (id) => {
-    const todo = todos.find((todo) => todo.id === id)
-    const newDone = !todo.done
-    todo.done = newDone
-    console.log(todo)
-    update(todo).then((res) => {
-      const newTodos = todos.map((todo) => (todo.id !== id ? todo : res))
-      // console.log(res, newTodos)
-      setTodos(newTodos)
-    })
+  const handleChangeState = async (iden) => {
+    const todo = todos.find(({ id }) => id === iden)
+    const res = await update({ ...todo, done: !todo.done })
+    setTodos(todos.map((e) => (e.id === iden ? res : e)))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log(input)
+    const todo = await create({ todo: input })
+    setTodos([...todos, todo])
+    setInput('')
+  }
+
+  const handleDelete = async (id) => {
+    const deleted = await del(id)
+    console.log(deleted)
+    setTodos(todos.filter((todo) => todo.id !== deleted.id))
   }
 
   return (
-    <>
-      <form onSubmit={handleSubmit}>
-        <input
-          type='text'
-          placeholder='Crea una tarea'
-          value={input}
-          onChange={handleChange}
-        />
-      </form>
-
-      {todos.length > 0
-        ? (
-          <ul>
-            {todos.map(({ id, todo, done }) => (
-              <li key={id}>
-                {todo}{' '}
-                <button onClick={() => handleChangeState(id)}>
-                  {done ? 'cerrar' : 'abrir'}
-                </button>
-              </li>
-            ))}
-          </ul>
-          )
-        : (
-          <p>No hay tareas</p>
-          )}
-    </>
+    <div className='container'>
+      <Form
+        input={input}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+      />
+      <div className='todosContainer'>
+        {todos.length > 0
+          ? (
+            <Todos
+              todos={todos}
+              handleChangeState={handleChangeState}
+              handleDelete={handleDelete}
+            />
+            )
+          : (
+            <p>No hay tareas</p>
+            )}
+      </div>
+    </div>
   )
 }
 
